@@ -10,6 +10,6 @@ The prompt **reduces time to deliverable** and **increases completeness** when e
 ## Instructions for Claude Code usage
 1. Clone the prompt to your directory for slash commands, e.g. `~/.claude/commands/`
 2. Optional: Refine prompt for your use case
-3. Execute via `/tech-stack-audit [url] [optional-deep-dive]` <br>
+3. Execute in Claude Code via `/tech-stack-audit [url] [optional-deep-dive]` <br>
 
 The audit summary will be returned to the working directory as a .md file. It can also be exported to other output channels, such as file export, Slack, JIRA, Confluence.
