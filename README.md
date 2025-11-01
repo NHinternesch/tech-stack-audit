@@ -1,10 +1,11 @@
 # Tech Stack Audit Prompt
 
-`tech-stack-audit` is a reusable AI prompt. It is deigned to be used as a Claude Code slash command. It reviews an RFP (Request for Proposal) and creates a concise 1-page briefing in minutes.
+`tech-stack-audit` is a reusable AI prompt. It is deigned to be used as a Claude Code slash command. 
+It leverages browser technologies through the Chrome Dev Tools MCP server to execute tech stack audits and thoroughly inspect, review, and interpret website and martech tools. Then, it creates a well-formatted summary, which is returned to various output channels.
 
 ## Benefits
 
-The prompt **reduces time to deliverable** and **increases completeness** during a tech stack audit. 
+The prompt **reduces time to deliverable** and **increases completeness** when executing front end tech stack audits in the web browser. 
 
 ## Instructions for Claude Code usage
 1. Clone the prompt to your directory for slash commands, e.g. `~/.claude/commands/`
