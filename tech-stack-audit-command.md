@@ -66,7 +66,7 @@ Use this exact structure. Do not add additional sections unless explicitly reque
 ## Notes for Effective Audits
 
 - **Wait time**: Allow 5-10 seconds after page load to capture delayed/lazy-loaded tags
-- **Multiple pages**: If tools aren't found on homepage, suggest checking other pages (product, checkout, etc.)
+- **Multiple pages**: If tools aren't found on homepage, suggest checking other pages (content, registration, product, checkout, etc.)
 - **SPA detection**: Note if the site is a Single Page Application (affects tool loading patterns)
 - **Confidence levels**: If evidence is weak, note uncertainty
 
