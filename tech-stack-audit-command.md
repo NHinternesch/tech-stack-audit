@@ -36,11 +36,11 @@ When tasked to audit a website, the workflow involves:
     - Jira Ticket
     - Confluence page
     - None
-  - Distribution instruction:
-   - Word document: Save a word document in the project folder. Use the font Helvetica and only use grayscale font color.
-   - Slack message: Prompt for a Slack webhook URL and provide this link as instruction to retrieve a webhook URL: https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/. Then send the summary to Slack via: curl -X POST -H 'Content-type: application/json' --data '{"text":"[SUMMARY]"}' [WEBHOOKURL]
-   - Jira ticket: Create a draft for JIRA ticket using the Atlassian MCP server
-   - Confluence page: Create a draft for Confluence page using the Atlassian MCP server
+  - Distribution instruction
+    - Word document: Save a word document in the project folder. Use the font Helvetica and only use grayscale font color.
+    - Slack message: Prompt for a Slack webhook URL and provide this link as instruction to retrieve a webhook URL: https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/. Then send the summary to Slack via: curl -X POST -H 'Content-type: application/json' --data '{"text":"[SUMMARY]"}' [WEBHOOKURL]
+    - Jira ticket: Create a draft for JIRA ticket using the Atlassian MCP server
+    - Confluence page: Create a draft for Confluence page using the Atlassian MCP server
 
 
 ## Output Format
@@ -53,12 +53,12 @@ Use this exact structure. Do not add additional sections unless explicitly reque
 **URL Audited**: [Full URL]
 
 **Overview**
-- Table with 3 columns:
-  - 1. Tool category: Group the tools into the categories, such as analytics and tracking, adtech, personalization and testing, tag management system, CDP, compliance and CMP, miscelleanous
-  - 2. Tool name: State the tool name
-  - 3. Traces, evidence: List indications and proof that point to an implementation of the respective tool, such as network requests, libraries, cookies, local storage, console output etc.
+- Table with 3 columns
+  - Tool category: Group the tools into the categories, such as analytics and tracking, adtech, personalization and testing, tag management system, CDP, compliance and CMP, miscelleanous
+  - Tool name: State the tool name
+  - Traces, evidence: List indications and proof that point to an implementation of the respective tool, such as network requests, libraries, cookies, local storage, console output etc.
 
-**[tool] or [category] Deep Dive**
+**[Tool/Category] Deep Dive**
 - When prompted to audit a single specific tool or a specific category, include details about it in this section
 - List all details that can be understood from the implementation. Examples include depths of implementation, variety of events tracked, details about payloads, how the library is loaded etc.
 
@@ -72,4 +72,5 @@ Use this exact structure. Do not add additional sections unless explicitly reque
 
 ## Usage
 
+/tech-stack-audit-command [url] 
 /tech-stack-audit-command [url] [tool/category]
