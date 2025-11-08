@@ -16,7 +16,7 @@ Leverage browser technologies through the Chrome Dev Tools MCP server to execute
 When tasked to audit a website, the workflow involves:
 
 1. **Audit the site**
-  - Navigate to [url]
+  - Use the Chrome Dev Tools MCP server to navigate to [url] 
   - Accept all cookie and compliance banners
   - Perform a hard page reload (Cmd+Shift+R / Ctrl+Shift+R) to capture fresh data
   - Monitor all browser activity, incl. network requests, libraries, cookies, local storage, console output, DOM elements with tracking attributes
@@ -53,10 +53,8 @@ Use this exact structure. Do not add additional sections unless explicitly reque
 **URL Audited**: [Full URL]
 
 **Overview**
-- Table with 3 columns
-  - Tool category: Group the tools into the categories, such as analytics and tracking, adtech, personalization and testing, tag management system, CDP, compliance and CMP, miscelleanous
-  - Tool name: State the tool name
-  - Traces, evidence: List indications and proof that point to an implementation of the respective tool, such as network requests, libraries, cookies, local storage, console output etc.
+Create separate sections for each tool category, such as analytics and tracking, adtech, personalization and testing, tag management system, CDP, compliance and CMP, miscelleanous.
+In each section, list the tool name, followed by a sub-bullet with 'Traces, Evidence': List indications and proof that point to an implementation of the respective tool, such as network requests, libraries, cookies, local storage, console output etc.
 
 **[Tool/Category] Deep Dive**
 - When prompted to audit a single specific tool or a specific category, include details about it in this section
