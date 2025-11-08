@@ -53,8 +53,8 @@ Use this exact structure. Do not add additional sections unless explicitly reque
 **URL Audited**: [Full URL]
 
 **Overview**
-Create separate sections for each tool category, such as analytics and tracking, adtech, personalization and testing, tag management system, CDP, compliance and CMP, miscelleanous.
-In each section, list the tool name, followed by a sub-bullet with 'Traces, Evidence': List indications and proof that point to an implementation of the respective tool, such as network requests, libraries, cookies, local storage, console output etc.
+- Create separate sections for each tool category, such as analytics and tracking, adtech, personalization and testing, tag management system, CDP, compliance and CMP, miscelleanous.
+- In each section, list the tool name, followed by a sub-bullet with 'Traces, Evidence': List indications and proof that point to an implementation of the respective tool, such as network requests, libraries, cookies, local storage, console output etc.
 
 **[Tool/Category] Deep Dive**
 - When prompted to audit a single specific tool or a specific category, include details about it in this section
