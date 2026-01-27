@@ -37,7 +37,7 @@ When tasked to audit a website, the workflow involves:
     - Confluence page
     - None
   - Distribution instruction
-    - Word document: Save a word document in the project folder. Use the font Helvetica and only use grayscale font color.
+    - Word document: Save a word document in the project folder. Use the font Helvetica and only use grayscale font colors. Use font size 9 for the paragraphs and progressively slightly bigger fonts for the headings.
     - Slack message: Prompt for a Slack webhook URL and provide this link as instruction to retrieve a webhook URL: https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/. Then send the summary to Slack via: curl -X POST -H 'Content-type: application/json' --data '{"text":"[SUMMARY]"}' [WEBHOOKURL]
     - Jira ticket: Create a draft for JIRA ticket using the Atlassian MCP server
     - Confluence page: Create a draft for Confluence page using the Atlassian MCP server
