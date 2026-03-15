@@ -1,4 +1,4 @@
-# Tech Stack Audit Prompt
+# Tech Stack Audit
 
 <br><br>
 <img width="872" height="228" alt="tech-stack-audit visualization" src="https://github.com/user-attachments/assets/1a69d5ed-0a0c-428a-b673-0f1b191a132f" />
