@@ -32,7 +32,7 @@ Based on the data gathered, identify all tools present in the tech stack, groupe
  
 Follow the **Output Format** exactly (see below). Then:
 - Display the summary in the conversation
-- Save it as a `.md` file to the project folder
+- Save it as a `.docx` file to the project folder. Font: Helvetica, grayscale only. Body: size 9, headings progressively larger. Read docx skill first if available.
  
 ### Step 4 — Distribution (Optional)
  
@@ -40,10 +40,9 @@ Ask the user if they'd like to send the summary to an output channel:
  
 | Option | Instructions |
 |---|---|
-| **Word document** | Save `.docx` to project folder. Font: Helvetica, grayscale only. Body: size 9, headings progressively larger. Read docx skill first if available. |
-| **Slack message** | Use Slack MCP if available — prompt for channel. If unavailable, ask for a webhook URL ([how to get one](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)) and send via: `curl -X POST -H 'Content-type: application/json' --data '{"text":"[SUMMARY]"}' [WEBHOOKURL]` |
-| **Jira ticket** | Create a draft Jira ticket using the Atlassian MCP server |
-| **Confluence page** | Create a draft Confluence page using the Atlassian MCP server |
+| **Slack message** | Use Slack MCP or Slack integration if available — prompt for destination, e.g. channel or direct message. If unavailable, ask for a webhook URL ([how to get one](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)) and send via: `curl -X POST -H 'Content-type: application/json' --data '{"text":"[SUMMARY]"}' [WEBHOOKURL]` |
+| **Jira ticket** | Create a draft Jira ticket using the Atlassian MCP server. Return the URL of the created ticket. If Atlassian MCP server is unavailable, instruct the user to install it for seamless integration.|
+| **Confluence page** | Create a draft Confluence page using the Atlassian MCP server. Return the URL of the created page. If Atlassian MCP server is unavailable, instruct the user to install it for seamless integration. |
 | **None** | Skip distribution |
 
 
