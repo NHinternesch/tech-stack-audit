@@ -1,6 +1,9 @@
 ---
 name: tech-stack-audit
 description: Leverage browser technologies through the Chrome Dev Tools MCP server or other browser automation tools to execute tech stack audits and thoroughly inspect, review, and interpret website and martech tools. Then, create a well-formatted summary, which is returned to various output channels. The recipient of these summaries is a Pre Sales Solutions Engineer, who needs to get a thorough understanding of a tech stack and the components involved, in order to pitch the solution they are looking to position with a prospect.  Use this skill whenever the user asks to audit a website, inspect a tech stack, identify tools on a site, review martech implementations, or research a prospect's technology setup.
+allowed-tools: Read, Bash, Write, mcp__chrome-devtools, mcp__atlassian, mcp__plugin_slack_slack                       
+effort: high                                                                                   
+tags: [audit, tech-stack, martech, browser, pre-sales]  
 ---
 
 
