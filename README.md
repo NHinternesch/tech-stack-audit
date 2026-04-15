@@ -1,7 +1,7 @@
 # Tech Stack Audit
 
 `tech-stack-audit` is an LLM skill for technical front-end audits, orchestrated from Claude Code, Claude Cowork etc. 
-It leverages browser technologies through the Chrome Dev Tools MCP server to execute tech stack audits and thoroughly inspect, review, and interpret website and martech tools. Then, it creates a well-formatted summary, which is returned to various output channels.
+It leverages browser technologies through the Chrome Dev Tools MCP server to execute tech stack audits and thoroughly inspect, review, and interpret website and martech tools. Then, it creates a well-formatted summary and tech stack diagram, which are returned to various output channels.
 
 ## Benefits
 
