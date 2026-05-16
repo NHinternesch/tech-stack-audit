@@ -17,9 +17,10 @@ Used by the **Architecture diagram** option in Step 4 of `SKILL.md`. Hand-author
 | Title | `x=40, y=36` |
 | Band height | `80`; bands start every `90` (10px gap) |
 | Node | `w=170, h=50`, corner radius `8` |
-| Node `x` for index `i` (0-based) | `60 + i*180` — max 6 per band: `60, 240, 420, 600, 780, 960` |
+| Node `x` for index `i` of `N` (0-based) | `(605 − 90·N) + i·180` — centers the row of `N` nodes. Slot-0 start by `N`: 1→515, 2→425, 3→335, 4→245, 5→155, 6→65. Each next slot adds 180. |
 | Node `y` (top edge) | `band_center − 25` |
 | Label `text` | `x = node_x + 85`, `y = node_top + 30` |
+| Band label | `x=52`, `y=band_top + 12` — lifted above the node row so wide bands (N=6) don't clip the label |
 | Legend | `transform="translate(880, 36)"` — single horizontal row in the title strip, never below `y=40` |
 
 Bands top-to-bottom — **skip empty bands; never reorder**:
@@ -36,13 +37,13 @@ Bands top-to-bottom — **skip empty bands; never reorder**:
 
 ## Edge routing — one rule, no exceptions
 
-End every path with the segment that points into the target so the arrowhead lands correctly:
+End every path with the segment that points into the target so the arrowhead lands correctly. Horizontal segments stay clear of box edges — within-band edges leave a 3 px gap on each side; cross-band edges run the horizontal mid-way through the 10 px band gutter (`±20` from source center y), connected to the source by a short vertical stub.
 
-- **Within-band** (same band): `d="M (x_a+85) y H (x_b−85)"` — arrow lands on target's left edge.
-- **Cross-band downward**: `d="M x_a (y_a+25) H x_b V (y_b−25)"` — arrow lands on target's top edge.
-- **Cross-band upward**: `d="M x_a (y_a−25) H x_b V (y_b+25)"` — arrow lands on target's bottom edge.
+- **Within-band** (same band): `d="M (x_a+88) y H (x_b−88)"` — arrow lands just shy of target's left edge.
+- **Cross-band downward**: `d="M x_a (y_a+25) V (y_a+45) H x_b V (y_b−25)"` — arrow lands on target's top edge.
+- **Cross-band upward**: `d="M x_a (y_a−25) V (y_a−45) H x_b V (y_b+25)"` — arrow lands on target's bottom edge.
 
-`(x_a, y_a)` and `(x_b, y_b)` are node centers. When source and target share a column, the `H` segment is a no-op and can be dropped.
+`(x_a, y_a)` and `(x_b, y_b)` are node centers. When source and target share a column, the `H` and middle `V` are no-ops and the path collapses to a single `V` from source edge to target edge.
 
 ## Caps
 
@@ -67,10 +68,10 @@ Copy verbatim. Replace `[SITE]`. Delete bands with no nodes. Populate only `<g c
     .band rect { stroke: #e5e7eb; stroke-width: 1; }
     .band-label { font-size: 11px; fill: #6b7280; font-weight: 600;
                   text-transform: uppercase; letter-spacing: .05em; }
-    .box { fill: #fff; stroke-width: 2; rx: 8; ry: 8; filter: url(#shadow); }
-    .hub { stroke-width: 3; }
+    .box { fill: #fff; stroke-width: 1.25; rx: 8; ry: 8; filter: url(#shadow); }
+    .hub { stroke-width: 2; }
     .label { font-size: 13px; fill: var(--ink); text-anchor: middle; }
-    .edge { fill: none; stroke-width: 2.5; }
+    .edge { fill: none; stroke-width: 1.25; }
     .cert-high   { stroke: var(--cert-high); }
     .cert-medium { stroke: var(--cert-medium); }
     .cert-low    { stroke: var(--cert-low); }
@@ -101,23 +102,24 @@ Copy verbatim. Replace `[SITE]`. Delete bands with no nodes. Populate only `<g c
   <text class="title" x="40" y="36">[SITE] — Tech Stack</text>
 
   <g class="band"><rect x="40" y="60"  width="1120" height="80" fill="var(--cat-cmp)"/>
-    <text class="band-label" x="52" y="76">Compliance / CMP</text></g>
+    <text class="band-label" x="52" y="72">Compliance / CMP</text></g>
   <g class="band"><rect x="40" y="150" width="1120" height="80" fill="var(--cat-tagmgmt)"/>
-    <text class="band-label" x="52" y="166">Tag Management</text></g>
+    <text class="band-label" x="52" y="162">Tag Management</text></g>
   <g class="band"><rect x="40" y="240" width="1120" height="80" fill="var(--cat-cdp)"/>
-    <text class="band-label" x="52" y="256">CDP</text></g>
+    <text class="band-label" x="52" y="252">CDP</text></g>
   <g class="band"><rect x="40" y="330" width="1120" height="80" fill="var(--cat-analytics)"/>
-    <text class="band-label" x="52" y="346">Analytics</text></g>
+    <text class="band-label" x="52" y="342">Analytics</text></g>
   <g class="band"><rect x="40" y="420" width="1120" height="80" fill="var(--cat-personalization)"/>
-    <text class="band-label" x="52" y="436">Personalization</text></g>
+    <text class="band-label" x="52" y="432">Personalization</text></g>
   <g class="band"><rect x="40" y="510" width="1120" height="80" fill="var(--cat-adtech)"/>
-    <text class="band-label" x="52" y="526">Adtech</text></g>
+    <text class="band-label" x="52" y="522">Adtech</text></g>
   <g class="band"><rect x="40" y="600" width="1120" height="80" fill="var(--cat-misc)"/>
-    <text class="band-label" x="52" y="616">Miscellaneous</text></g>
+    <text class="band-label" x="52" y="612">Miscellaneous</text></g>
 
   <g class="nodes">
-    <!-- <rect class="box cert-high" x="60" y="165" width="170" height="50"/>
-         <text class="label" x="145" y="195">Tool Name</text> -->
+    <!-- Slot 0 of a single-node band (N=1) — boxes are centered, so x=515:
+         <rect class="box cert-high" x="515" y="165" width="170" height="50"/>
+         <text class="label" x="600" y="195">Tool Name</text> -->
   </g>
 
   <g class="edges">
@@ -126,11 +128,11 @@ Copy verbatim. Replace `[SITE]`. Delete bands with no nodes. Populate only `<g c
 
   <g class="legend" transform="translate(880, 36)">
     <text class="legend-text" x="0"   y="0" font-weight="700">Certainty:</text>
-    <line x1="65"  y1="-4" x2="85"  y2="-4" stroke="var(--cert-high)"   stroke-width="2.5"/>
+    <line x1="65"  y1="-4" x2="85"  y2="-4" stroke="var(--cert-high)"   stroke-width="1.25"/>
     <text class="legend-text" x="91"  y="0">High</text>
-    <line x1="130" y1="-4" x2="150" y2="-4" stroke="var(--cert-medium)" stroke-width="2.5"/>
+    <line x1="130" y1="-4" x2="150" y2="-4" stroke="var(--cert-medium)" stroke-width="1.25"/>
     <text class="legend-text" x="156" y="0">Medium</text>
-    <line x1="215" y1="-4" x2="235" y2="-4" stroke="var(--cert-low)"    stroke-width="2.5"/>
+    <line x1="215" y1="-4" x2="235" y2="-4" stroke="var(--cert-low)"    stroke-width="1.25"/>
     <text class="legend-text" x="241" y="0">Low</text>
   </g>
 </svg>
@@ -138,27 +140,27 @@ Copy verbatim. Replace `[SITE]`. Delete bands with no nodes. Populate only `<g c
 
 ## Worked example
 
-Three nodes (GTM → Segment hub → GA4), two cross-band edges in the same column. Pattern-match shape and indentation:
+Three nodes (GTM → Segment hub → GA4), one per band, so each is centered at slot 0 of N=1 (`x=515`, center 600). Two cross-band edges in the same column. Pattern-match shape and indentation:
 
 ```svg
 <g class="nodes">
-  <rect class="box cert-high"     x="60" y="165" width="170" height="50"/>
-  <text class="label" x="145" y="195">Google Tag Manager</text>
+  <rect class="box cert-high"     x="515" y="165" width="170" height="50"/>
+  <text class="label" x="600" y="195">Google Tag Manager</text>
 
-  <rect class="box hub cert-high" x="60" y="255" width="170" height="50"/>
-  <text class="label" x="145" y="285">Segment</text>
+  <rect class="box hub cert-high" x="515" y="255" width="170" height="50"/>
+  <text class="label" x="600" y="285">Segment</text>
 
-  <rect class="box cert-medium"   x="60" y="345" width="170" height="50"/>
-  <text class="label" x="145" y="375">Google Analytics 4</text>
+  <rect class="box cert-medium"   x="515" y="345" width="170" height="50"/>
+  <text class="label" x="600" y="375">Google Analytics 4</text>
 </g>
 
 <g class="edges">
-  <!-- GTM (center 145,190) → Segment (145,280): same column, V only -->
-  <path class="edge cert-high"   d="M 145 215 V 255" marker-end="url(#arrow-high)"/>
-  <!-- Segment (145,280) → GA4 (145,370): same column, V only -->
-  <path class="edge cert-medium" d="M 145 305 V 345" marker-end="url(#arrow-medium)"/>
+  <!-- GTM (center 600,190) → Segment (600,280): same column, single V -->
+  <path class="edge cert-high"   d="M 600 215 V 255" marker-end="url(#arrow-high)"/>
+  <!-- Segment (600,280) → GA4 (600,370): same column, single V -->
+  <path class="edge cert-medium" d="M 600 305 V 345" marker-end="url(#arrow-medium)"/>
 </g>
 ```
 
-For an offset cross-band edge — e.g. Segment at `x=145` to an Adtech tool at `x=600`:
-`d="M 145 305 H 600 V 525"` with `marker-end="url(#arrow-...)"`.
+For an offset cross-band edge — e.g. Segment at center `x=600` to a slot-0 Adtech tool in an N=5 band (center `x=240`):
+`d="M 600 305 V 325 H 240 V 525"` with `marker-end="url(#arrow-...)"`. The short `V 325` stub drops the horizontal into the band gutter so it doesn't run along Segment's bottom edge.
