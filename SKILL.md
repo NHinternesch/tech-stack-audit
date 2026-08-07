@@ -1,68 +1,136 @@
 ---
 name: tech-stack-audit
-description: "Leverage browser technologies through the Chrome Dev Tools MCP server or other browser automation tools to execute tech stack audits and thoroughly inspect, review, and interpret website and martech tools. Then, create a well-formatted summary, which is returned to various output channels. The recipient of these summaries is a Pre Sales Solutions Engineer, who needs to get a thorough understanding of a tech stack and the components involved, in order to pitch the solution they are looking to position with a prospect. Use this skill whenever the user asks to audit a website, inspect a tech stack, identify tools on a site, review martech implementations, or research a prospect's technology setup."
-allowed-tools: Read, Bash, Write, mcp__chrome-devtools, mcp__atlassian, mcp__plugin_slack_slack
+description: "Audit a website's front-end technology stack via browser automation — inspect network requests, cookies, JS globals, and DOM markers to identify analytics, adtech, tag management, CDP, personalization, and consent tools, then produce a formatted summary, a Word document, and optional architecture diagram or Slack/Jira/Confluence output. Use this skill whenever the user asks to audit a website, inspect or research a tech stack, identify tools or vendors on a site, or review a martech implementation."
+allowed-tools: Read, Write, Bash, Skill, AskUserQuestion, mcp__chrome-devtools
 effort: high
+metadata:
+  version: 2.1.0
 ---
-
 
 # Tech Stack Audit
 
-This skill uses the Chrome DevTools MCP server to audit a website's full technology stack and produces a structured summary for Pre-Sales Solutions Engineers preparing to pitch to a prospect.
+Audit a website's full technology stack and produce a structured summary.
+
+The reader is a Pre-Sales Solutions Engineer who needs to understand a prospect's
+stack and the components involved well enough to position a solution against it.
+Write for that reader: name vendors precisely, ground every claim in observed
+evidence, and be explicit about what you could not confirm.
 
 ## Inputs
 
 - **Required**: `[url]` — the website to audit
-- **Optional**: `[tool]` (e.g. "Google Analytics") or `[category]` (e.g. "analytics and tracking", "adtech") for a deep-dive focus
+- **Optional**: `[tool]` (e.g. "Google Analytics") or `[category]` (e.g. "adtech")
+  for a deep-dive focus
 
+## Certainty rubric
+
+Assign to every tool identified. Internal guidance for your own judgement — the
+rubric definitions themselves never appear in the summary or the `.docx`, only the
+resulting High/Medium/Low rating.
+
+- **High** — direct evidence: network request to a vendor host, vendor cookie, JS
+  global, or DOM marker.
+- **Medium** — partial or indirect evidence: a single weak signal, an ambiguous
+  host, or a vendor inferred from a script loader.
+- **Low** — inferred from typical stack patterns rather than evidence on this site.
 
 ## Workflow
 
-When tasked to audit a website, the workflow involves:
+### Step 1 — Audit the site
 
-### Step 1 - Audit the site
-  - Use the Chrome Dev Tools MCP server to navigate to [url]
-  - Accept all cookie and compliance banners
-  - Perform a hard page reload (Cmd+Shift+R / Ctrl+Shift+R) to capture fresh data
-  - Monitor all browser activity, incl. network requests, libraries, cookies, local storage, console output, DOM elements with tracking attributes
+1. `navigate_page` to `[url]`.
+2. Accept cookie and consent banners — take a snapshot to find them. Consent state
+   gates a large share of tags, so tags stay dormant until you accept.
+3. Perform hard reload with `navigate_page` (`type: "reload"`, `ignoreCache: true`) to capture a
+   cold load with consent granted.
+4. Wait 5–10 seconds for delayed and lazy-loaded tags before collecting.
+5. Collect evidence:
+   - `list_network_requests` — the primary signal. Vendor hosts and payloads.
+   - `evaluate_script` — JS globals (`dataLayer`, `ga`, `gtag`, `_satellite`,
+     `utag`, `analytics`, `Optimizely`), `document.cookie`, and `localStorage`
+     keys.
+   - `list_console_messages` — vendor init logs and errors.
+   - `take_snapshot` — DOM tracking attributes.
 
-### Step 2 — Identify Tools
+Also note:
 
-Based on the data gathered, identify all tools present in the tech stack, grouped by category (analytics, adtech, tag management, CDP, personalization/testing, compliance/CMP, miscellaneous, etc.).
+- **SPA**: if the site is a Single Page Application, say so — it changes tag
+  loading patterns, and route changes may fire tags a single page load misses.
+- **Thin results**: if the homepage yields little, audit a product, article,
+  registration, or checkout page — commerce and conversion tags concentrate there.
+  Offer this rather than reporting an empty stack.
 
-### Step 3 — Generate Summary and Output Document
+### Step 2 — Identify tools
 
-Follow the **Output Format** exactly (see below). Then, produce both default outputs:
+Group the identified tools by category: Compliance & CMP, Tag Management, CDP,
+Analytics & Tracking, Personalization & Testing, Adtech, Miscellaneous. Assign each
+a certainty rating per the rubric above.
 
-**3a. Summary in conversation** — display the formatted summary inline.
+Distinguish a vendor actually present from one merely referenced — a script that
+404s, or a host that only appears in a CSP header or a commented-out tag, is not a
+live implementation. Note those separately rather than counting them as findings.
 
-**3b. Word document** — save as a `.docx` file to the project folder. Font: Helvetica, grayscale only. Body: size 9, headings progressively larger. Read docx skill first if available.
+### Conciseness rules
 
-**Clean output.** The project folder should end up containing exactly the `.docx` from 3b.
+These apply to every output — the inline summary, the `.docx`, and any Slack, Jira,
+or Confluence text. They override any instinct to be thorough by adding words.
 
-Do **not** leave behind scratch work:
-- No helper scripts (e.g. a `build_docx.py` you authored to call `python-docx`) — write them to `/tmp` and remove after the run.
-- No intermediate JSON dumps, logs, or screenshots.
+- **Report only what is present.** Never write that a vendor, category, or signal
+  was absent. No "no X was found", no "we did not detect", no empty-category
+  headings. A category with nothing in it is simply omitted. The reader infers
+  absence from silence; spelling it out is filler.
+  - Avoid: "No Optimizely, VWO, AB Tasty, Kameleoon, Adobe Target or Dynamic Yield
+    signal was found."
+  - One exception: if the user explicitly asked about a specific tool or category,
+    a single line stating it is not present answers their question — that is a
+    finding, not filler.
+- **No prose summary blocks.** Do not open or close with a narrative paragraph
+  synthesizing the stack. No "Executive Summary", "Overview" prose, "Key Takeaways",
+  "Conclusion", or "Positioning" section. The category listing and any requested
+  deep dive are the deliverable.
+  - Avoid: "[Site] runs a dual tag-management setup. GTM is present but its
+    analytics layer is almost entirely paused; the live measurement platform is…"
+- **Top-line findings instead.** Where a summary would go, use at most 3 bullets,
+  one line each, stating the findings that most change how a solution is
+  positioned — not a restatement of the category list. Fewer than 3 is fine. Zero
+  is fine when nothing stands out.
+- No filler transitions, no restating a finding in the deep dive that the category
+  listing already covered, no meta-commentary on the audit process.
 
-The rule of thumb: if a tool *returns* a file (bytes, base64, or a written-out path), keep it. If you had to invent an intermediate file purely for your own workflow, it doesn't belong in the project folder.
+### Step 3 — Summary and document
 
-### Step 4 — Addditional Output Format and Channels (Optional)
+Follow the **Output Format** below exactly. Produce a word document as the main deliverable. In the inline summary, only state result/success and a brief summary with 3 short bullet points max.
 
-Ask the user if they'd like any additional output formats or output channels and provide a few options:
+**Word document** — `.docx` in the project folder (the user's cwd). Font
+Helvetica, grayscale only, body size 9, headings progressively larger. Invoke the
+`docx` skill first if available.
+
+**Clean output.** The project folder ends up with exactly the `.docx`, plus any
+diagram file from Step 4. Write helper scripts and intermediate specs to `/tmp` and
+remove them after the run — no builder scripts, JSON dumps, logs, or screenshots in
+the project folder. Rule of thumb: keep what a tool *returns* as a file; anything
+you invented for your own workflow does not belong there.
+
+### Step 4 — Additional outputs (optional)
+
+Ask via `AskUserQuestion` (`multiSelect: true`) which additional outputs the user
+wants, offering these options:
 
 | Option | Instructions |
 |---|---|
-| **Architecture diagram** | Generate a hand-authored **SVG** architecture diagram. **Read `diagram-spec.md`** (sibling of this file) for the skeleton, layout constants, edge-routing rule, caps, and worked example. Do **not** free-form layout or styling; fill the skeleton's `<g class="nodes">` and `<g class="edges">` only. Output: `[site]-tech-stack.svg`. |
-| **Editable diagram (drawio)** | On request only. Walk the same node/edge mental model used for the SVG and emit drawio XML, carrying over the same palette, swimlane order, and certainty color encoding. Emit as text — do not call any MCP renderer. Output: `[site]-tech-stack.drawio`. |
-| **Slack message** | Use Slack MCP or Slack integration if available — prompt for destination, e.g. channel or direct message. If unavailable, ask for a webhook URL ([how to get one](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)) and send via: `curl -X POST -H 'Content-type: application/json' --data '{"text":"[SUMMARY]"}' [WEBHOOKURL]` |
-| **Jira ticket** | Create a draft Jira ticket using the Atlassian MCP server. Return the URL of the created ticket. If Atlassian MCP server is unavailable, instruct the user to install it for seamless integration.|
-| **Confluence page** | Create a draft Confluence page using the Atlassian MCP server. Return the URL of the created page. If Atlassian MCP server is unavailable, instruct the user to install it for seamless integration. |
-| **None** | Skip distribution |
+| **Architecture diagram** | Read `diagram-spec.md` (sibling of this file) and follow it. Output: `[site]-tech-stack.svg` in the project folder. |
+| **Editable diagram (drawio)** | See the drawio section of `diagram-spec.md`. Output: `[site]-tech-stack.drawio`. |
+| **Slack message** | Use the Slack MCP server; prompt for channel or DM. If unavailable, tell the user to install it. |
+| **Jira ticket** | Create a draft ticket via the Atlassian MCP server; return the URL. If unavailable, tell the user to install it. |
+| **Confluence page** | Create a draft page via the Atlassian MCP server; return the URL. If unavailable, tell the user to install it. |
 
+Confirm the destination before sending anything outward — a Slack post, ticket, or
+page is visible to others and awkward to retract.
 
 ## Output Format
 
-Use this exact structure. Do not add extra sections unless explicitly requested.
+Use this structure. Do not add sections unless asked — no prose summary section
+before, between, or after these.
 
 ```
 **Tech Stack Audit Summary for [SITE AUDITED]**
@@ -70,35 +138,28 @@ Use this exact structure. Do not add extra sections unless explicitly requested.
 **Audit Date**: [YYYY-MM-DD]
 **URL Audited**: [Full URL]
 
-**Overview**
+**Top-Line Findings** *(omit entirely if nothing stands out)*
+- [One line. The finding that most changes how a solution is positioned.]
+- [Max 3 bullets total. Fewer is better. No paragraphs.]
+
+**Stack**
 
 [Category — e.g. Analytics & Tracking]
 - [Tool Name]
   - Certainty: [High | Medium | Low]
-  - Traces & Evidence: [network requests, cookies, JS libraries, DOM attributes, etc.]
+  - Traces & Evidence: [network requests, cookies, JS globals, DOM attributes]
 
-[Category — e.g. Tag Management]
-- [Tool Name]
-  - Certainty: [High | Medium | Low]
-  - Traces & Evidence: [...]
-
-[Repeat for each category found: Adtech, Personalization & Testing, CDP, Compliance & CMP, Miscellaneous]
+[Repeat only for categories with at least one tool found — omit the rest]
 
 **[Tool/Category] Deep Dive** *(only when a specific tool or category was requested)*
 - Depth of implementation
 - Events tracked and payload details
 - How the library is loaded
-- Any other implementation-specific observations
+- Other implementation-specific observations
 ```
 
-**Certainty rubric — internal guidance only; never include in the inline summary or the `.docx`:**
-- **High** — direct evidence (network requests, cookies, JS globals, DOM markers).
-- **Medium** — partial or indirect evidence (single weak signal, ambiguous host, vendor inferred from a script loader).
-- **Low** — inferred from typical stack patterns rather than evidence on this site.
+## Closing
 
-## Audit Notes
-
-- **Wait time**: Allow 5–10 seconds post-load for delayed/lazy-loaded tags
-- **Multiple pages**: If tools aren't found on the homepage, suggest checking product, content, registration, or checkout pages
-- **SPA detection**: Note if the site is a Single Page Application — this affects tag loading patterns
-- **No meta-commentary**: After producing outputs, reply only with what the user asked for. Do not append observations, "stress-test notes", or critiques about the skill itself, the diagram spec, or the auditing process — those belong in a separate feedback request, not in audit deliverables.
+After producing the outputs, reply only with what the user asked for. Do not append
+observations, stress-test notes, or critiques of the skill, the diagram spec, or the
+audit process — those belong in a separate feedback request, not in deliverables.
