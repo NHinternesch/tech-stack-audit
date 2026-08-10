@@ -4,7 +4,7 @@ description: "Audit a website's front-end technology stack via browser automatio
 allowed-tools: Read, Write, Bash, Skill, AskUserQuestion, mcp__chrome-devtools
 effort: high
 metadata:
-  version: 2.1.0
+  version: 2.2.0
 ---
 
 # Tech Stack Audit
@@ -118,7 +118,7 @@ wants, offering these options:
 
 | Option | Instructions |
 |---|---|
-| **Architecture diagram** | Read `diagram-spec.md` (sibling of this file) and follow it. Output: `[site]-tech-stack.svg` in the project folder. |
+| **Architecture diagram** | Read `diagram-spec.md` (sibling of this file) and follow it. Every vendor from the audit goes on the diagram, each with its account ID or endpoint, and you render then *look* at the result before handing it over. Output: `[site]-tech-stack.svg` in the project folder. |
 | **Editable diagram (drawio)** | See the drawio section of `diagram-spec.md`. Output: `[site]-tech-stack.drawio`. |
 | **Slack message** | Use the Slack MCP server; prompt for channel or DM. If unavailable, tell the user to install it. |
 | **Jira ticket** | Create a draft ticket via the Atlassian MCP server; return the URL. If unavailable, tell the user to install it. |
