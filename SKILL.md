@@ -1,11 +1,11 @@
 ---
 name: tech-stack-audit
-description: "Audits a website's front-end technology stack in a live browser by inspecting network traffic, cookies, JS globals, the data layer and consent behavior across several page types, then produces a single self-contained HTML report with an architecture diagram. Use when the user asks to audit a website, inspect or research a tech stack, identify the analytics, adtech, tag management, CDP, personalization or consent vendors on a site, or review a martech implementation."
+description: "Audits a website's front-end technology stack in a live browser by inspecting network traffic, cookies, JS globals and the data layer across several page types, then produces a single self-contained HTML report with an architecture diagram. Use when the user asks to audit a website, inspect or research a tech stack, identify the analytics, adtech, tag management, CDP, personalization or consent vendors on a site, or review a martech implementation."
 argument-hint: "<url> [tool or category to focus on]"
 allowed-tools: Read, Write, mcp__chrome-devtools
 effort: high
 metadata:
-  version: 4.0.0
+  version: 4.1.0
 ---
 
 # Tech Stack Audit
@@ -64,12 +64,11 @@ then reuse the exact same text on every page so the digests are comparable. Make
   needing a list.
 - **Data layer.** Cover `dataLayer`, any custom GTM data layer
   (`google_tag_manager[id].dataLayer.name`), `adobeDataLayer`, `digitalData` and
-  `utag_data`. Return event names with counts, the union of keys, any `consent`
-  commands, and one sample push with string values truncated.
-- **Consent APIs.** Read `google_tag_data.ics.entries` (default and update state per
-  type), `__tcfapi("ping")` and `__gpp("ping")`, `OnetrustActiveGroups` and
-  `Cookiebot.consent`. Wrap callback APIs in a 1.5 s timeout:
-  `__tcfapi("getTCData")` stays pending until the user chooses.
+  `utag_data`. Return event names with counts, the union of keys, and one sample
+  push with string values truncated.
+- **Consent state.** Read `google_tag_data.ics.entries`, `OnetrustActiveGroups`,
+  `Cookiebot.consent` and `__tcfapi("ping")` (with a 1.5 s timeout), only to confirm
+  that consent is fully granted.
 - **Cookies and storage.** Use `cookieStore.getAll()` for name, domain and lifetime
   (from `expires`). Add the `localStorage` and `sessionStorage` key names. Never
   return cookie or storage values.
@@ -81,23 +80,18 @@ then reuse the exact same text on every page so the digests are comparable. Make
 On every `navigate_page`, pass `initScript: "performance.setResourceTimingBufferSize(5000)"`.
 Without it, Chrome keeps only 250 resource entries and busy pages are undercounted.
 
-### 2. Consent passes on the homepage
+### 2. Accept all consent first
 
-How each tool behaves before and after a consent choice is part of its finding, so
-capture all three states from a clean start. To click the banner, use
-`evaluate_script` to find visible buttons, searching open shadow roots too, whose
-text matches accept or reject wording in the site's language. Record every
-first-layer option, then call `.click()` on the one you want. If the banner sits in a
-cross-origin iframe, fall back to `take_snapshot` and `click`.
+The audit assumes full consent, so every tool fires and gets used before you collect
+anything. Open `new_page` on `about:blank` with `isolatedContext: "tsa"` and navigate
+to the URL. Accept every consent and cookie banner. Use `evaluate_script` to find the
+visible button, searching open shadow roots too, whose text means accept all in the
+site's language ("Accept all", "Allow all", "Alle akzeptieren"), then `.click()` it.
+If the banner sits in a cross-origin iframe, use `take_snapshot` and `click` instead.
 
-1. **Pre-consent.** Open `new_page` on `about:blank` with
-   `isolatedContext: "tsa-reject"`, navigate to the URL, and run the digest.
-2. **After reject.** Click the first-layer reject, reload with `ignoreCache: true`,
-   and run the digest. If there is no first-layer reject, record that instead; it is
-   itself a finding.
-3. **After accept.** Repeat in a second clean context (`isolatedContext: "tsa-accept"`)
-   with accept, then reload with `ignoreCache: true` and run the digest. Every later
-   page uses this context.
+Then reload with `ignoreCache: true`, so tags load cold with consent granted, and
+check in the digest that consent is fully granted. Accept any banner that appears on
+a later page too. Every page uses this one context.
 
 ### 3. Page types
 
@@ -111,7 +105,7 @@ distinct types the site has (the homepage counts as one), and at most seven:
 | E-commerce | home, category or listing, product (PDP), search results, cart |
 | Lead-gen, finance, SaaS | home, product or service, pricing or quote start, blog or content article, sign-up or contact page |
 
-Run the digest on each page in the accept context. Don't log in, submit forms, enter
+Run the digest on each page in the same context. Don't log in, submit forms, enter
 personal data or buy anything; stop at the first step of a funnel.
 
 A framework marker alone doesn't make a site a single-page app. Check first whether
@@ -138,7 +132,7 @@ Use these sparingly. Always filter `list_network_requests` with `resourceTypes` 
 - **Third-party cookies.** Check one request per major ad or ID vendor rather than
   all of them.
 - **Cross-origin iframes.** The digest can't see requests made inside them. When an
-  ad, consent or widget iframe matters, list its requests filtered by type.
+  ad or widget iframe matters, list its requests filtered by type.
 
 ### 5. Write the report
 
@@ -152,35 +146,33 @@ one is thin:
 1. **Architecture**: the diagram.
 2. **Top-line findings**: one to three single-line bullets, chosen for what most
    changes how a solution is positioned. Examples are first-party or server-side
-   collection, pre-consent firing, a dual tag manager, a rich or missing data layer,
-   or a competitor's product in place.
+   collection, a dual tag manager, a rich or missing data layer, or a competitor's
+   product in place.
 3. **Tools by category**: every tool, one line each. That's a certainty chip, the
    precise vendor and product name, and one evidence sentence covering hosts, IDs,
-   cookies, the page types where it appears, and any consent problem. Use these
+   cookies, and the page types where it appears. Use these
    categories, in this order, and leave out empty ones: Compliance & CMP, Tag
    Management, CDP & Server-Side, Analytics & Tracking, Personalization & Testing,
    Adtech, Platform & Hosting, Miscellaneous.
 4. **`<Focus>` Deep Dive**, or **Stack Deep Dive** without a focus: one block per
    focus tool. Without a focus, cover the tag manager, the CMP and the main analytics
    tool. Use label/value rows: evidence, events and parameters, configuration, load
-   path, consent, cookies, data layer, and customization level (low, medium or high).
+   path, cookies, data layer, and customization level (low, medium or high).
 5. **Sources**: every URL audited with its page type. Then coverage rows: session
-   date and environment, consent paths covered, what wasn't covered, server-set
-   cookies, and `Referenced, not live`.
+   date and environment, what wasn't covered, server-set cookies, and `Referenced,
+   not live`.
 
-Consent behavior, the data layer and cookies have no sections of their own. They are
-part of the investigation, and each finding sits with the tool it belongs to. It goes
-in a Deep Dive row for focus tools, otherwise in a clause of the tool's one line.
-Banner options and before/after behavior belong to the CMP; data-layer structure
-belongs to the tag manager. Call out non-essential cookies set before consent or after
-reject, and lifetimes over 13 months (395 days).
+The data layer and cookies have no sections of their own. They are part of the
+investigation, and each finding sits with the tool it belongs to. It goes in a Deep
+Dive row for focus tools, otherwise in a clause of the tool's one line. Data-layer
+structure belongs to the tag manager. Call out cookie lifetimes over 13 months (395
+days).
 
 Writing rules:
 
 - **Report what is present.** Leave out empty categories, and never write that a vendor
-  was "not found". There are two exceptions. When the user asked about a specific tool
-  or category, one line saying it isn't present answers their question. And on the CMP
-  line, stating that nothing non-essential fires before consent is a real finding.
+  was "not found". The exception: when the user asked about a specific tool or
+  category, one line saying it isn't present answers their question.
 - **No narrative prose.** Write no summary, overview, conclusion or recommendations
   beyond the five sections.
 - **Evidence over adjectives.** Every line and row carries concrete traces.
@@ -249,7 +241,7 @@ h3{font-size:14px;line-height:22px;font-weight:600;margin:0 0 4px;padding-bottom
 
 <section class="group"><h2>Sources</h2>
 <dl class="spec"><div><dt>{Page type}</dt><dd>{URL}</dd></div></dl>
-<dl class="spec"><div><dt>{Session | Consent paths | Not covered | Server-set cookies | Referenced, not live}</dt><dd>{value}</dd></div></dl>
+<dl class="spec"><div><dt>{Session | Not covered | Server-set cookies | Referenced, not live}</dt><dd>{value}</dd></div></dl>
 </section>
 </main></body></html>
 ```
