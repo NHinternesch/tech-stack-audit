@@ -1,11 +1,10 @@
 ---
 name: tech-stack-audit
 description: "Audits a website's front-end technology stack in a live browser by inspecting network traffic, cookies, JS globals and the data layer across several page types, then produces a single self-contained HTML report with an architecture diagram. Use when the user asks to audit a website, inspect or research a tech stack, identify the analytics, adtech, tag management, CDP, personalization or consent vendors on a site, or review a martech implementation."
-argument-hint: "<url> [tool or category to focus on]"
-allowed-tools: Read, Write, mcp__chrome-devtools
+allowed-tools: Read, Write, mcp__chrome-devtools, mcp__playwright
 effort: high
 metadata:
-  version: 4.1.0
+  version: 4.2.0
 ---
 
 # Tech Stack Audit
@@ -18,17 +17,25 @@ every claim in observed evidence, and say plainly what you could not confirm.
 
 ## Inputs
 
-`$ARGUMENTS` holds the URL and, optionally, a focus: a tool (such as "Google
-Analytics") or a category (such as "adtech"). If no URL is given, ask for one.
+A URL and, optionally, a focus: a tool (such as "Google Analytics") or a category
+(such as "adtech"). If no URL is given, ask for one.
+
+## Browser
+
+Use whichever browser-control tool you have: Chrome DevTools MCP, Playwright MCP or
+another. You need to navigate, run JavaScript in the page and get its result, click,
+and take screenshots. Listing network requests with headers helps some targeted
+checks; without it, record those checks under Not covered. With no browser tool, say
+so and stop.
 
 ## Deliverable
 
-Produce one file in the user's current working directory:
-`<site>-tech-stack-audit-<YYYY-MM-DD>.html`, where `<site>` is the domain with dots
-replaced by hyphens. Nothing else goes in that folder; keep any scratch files in your
-scratchpad directory. Don't publish, upload or send the report anywhere.
+Produce one self-contained HTML file named `<site>-tech-stack-audit-<YYYY-MM-DD>.html`,
+where `<site>` is the domain with dots replaced by hyphens. Save it wherever your
+environment puts files for the user, and keep any scratch files out of that place.
+Don't publish, upload or send the report anywhere.
 
-When you're done, reply with the file path and up to three one-line findings.
+When you're done, reply with where the report is and up to three one-line findings.
 
 ## Certainty rubric
 
@@ -46,14 +53,15 @@ these on one `Referenced, not live` row in Sources.
 
 ### 1. Page digest
 
-Your evidence comes from one `evaluate_script` call per page that returns a compact
-JSON digest of a few KB. Raw `list_network_requests` output on a busy page runs to
-tens of KB, so keep that tool for targeted checks. Write the digest function once,
-then reuse the exact same text on every page so the digests are comparable. Make it:
+Your evidence comes from one JavaScript evaluation per page that returns a compact
+JSON digest of a few KB. A raw network request list on a busy page runs to tens of
+KB, so keep it for targeted checks. Write the digest function once, then reuse the
+exact same text on every page so the digests are comparable. Make it:
 
-- **Wait and scroll.** Scroll to the bottom to trigger lazy tags. Then poll
-  `performance.getEntriesByType("resource")` every 500 ms until the count is stable
-  for 2.5 s, with a 12 s cap.
+- **Wait and scroll.** First call `performance.setResourceTimingBufferSize(5000)`,
+  because browsers keep only 250 resource entries by default. Scroll to the bottom
+  to trigger lazy tags. Then poll `performance.getEntriesByType("resource")` every
+  500 ms until the count is stable for 2.5 s, with a 12 s cap.
 - **Hosts.** List each resource hostname with its request count, initiator types
   and two or three sample paths. Flag `responseStatus >= 400`, because a 404'd
   vendor isn't live.
@@ -70,28 +78,30 @@ then reuse the exact same text on every page so the digests are comparable. Make
   `Cookiebot.consent` and `__tcfapi("ping")` (with a 1.5 s timeout), only to confirm
   that consent is fully granted.
 - **Cookies and storage.** Use `cookieStore.getAll()` for name, domain and lifetime
-  (from `expires`). Add the `localStorage` and `sessionStorage` key names. Never
-  return cookie or storage values.
+  (from `expires`), or `document.cookie` names where it's missing. Add the
+  `localStorage` and `sessionStorage` key names. Never return cookie or storage
+  values.
 - **Page.** Return the URL, the title, framework markers (`__NEXT_DATA__`,
   `ng-version`, `__NUXT__`, `drupalSettings` and so on), iframe hosts, and the
   timezone. On the homepage, also return up to 60 internal links with their text,
   for choosing page types.
 
-On every `navigate_page`, pass `initScript: "performance.setResourceTimingBufferSize(5000)"`.
-Without it, Chrome keeps only 250 resource entries and busy pages are undercounted.
+Entries dropped before the digest runs are lost. If your tool can inject a script
+before page load, set the buffer size there too. Otherwise treat exactly 250 entries
+as truncated and take that page's hosts from the network request list.
 
 ### 2. Accept all consent first
 
 The audit assumes full consent, so every tool fires and gets used before you collect
-anything. Open `new_page` on `about:blank` with `isolatedContext: "tsa"` and navigate
-to the URL. Accept every consent and cookie banner. Use `evaluate_script` to find the
-visible button, searching open shadow roots too, whose text means accept all in the
-site's language ("Accept all", "Allow all", "Alle akzeptieren"), then `.click()` it.
-If the banner sits in a cross-origin iframe, use `take_snapshot` and `click` instead.
+anything. Open the URL in a fresh browser context with no cookies and accept every
+consent and cookie banner. In page JavaScript, find the visible button, searching open
+shadow roots too, whose text means accept all in the site's language ("Accept all",
+"Allow all", "Alle akzeptieren"), then `.click()` it. If the banner sits in a
+cross-origin iframe, click it through the tool's page snapshot instead.
 
-Then reload with `ignoreCache: true`, so tags load cold with consent granted, and
-check in the digest that consent is fully granted. Accept any banner that appears on
-a later page too. Every page uses this one context.
+Then reload, bypassing the cache if your tool can, so tags load cold with consent
+granted, and check in the digest that consent is fully granted. Accept any banner
+that appears on a later page too. Every page uses this one context.
 
 ### 3. Page types
 
@@ -116,8 +126,8 @@ fire.
 
 ### 4. Targeted checks
 
-Use these sparingly. Always filter `list_network_requests` with `resourceTypes` and a
-`pageSize`.
+Use these sparingly. Always filter network request lists by resource type and keep
+them short.
 
 - **Focus tools.** Read real payloads and live configuration. For GA4, take event
   names and parameters from `/g/collect` URLs, and from POST bodies when events are
@@ -127,8 +137,8 @@ Use these sparingly. Always filter `list_network_requests` with `resourceTypes` 
 - **Server-set cookies.** Read `Set-Cookie` on a first-party collector, such as a
   server-side GTM endpoint, or on the main document. A first-party HttpOnly
   identifier survives Safari's 7-day cap on JS-set cookies, which matters for
-  positioning. `get_network_request` on a document also returns the full HTML body,
-  so use it only when needed.
+  positioning. A document's request detail can include the full HTML body, so read
+  it only when needed.
 - **Third-party cookies.** Check one request per major ad or ID vendor rather than
   all of them.
 - **Cross-origin iframes.** The digest can't see requests made inside them. When an
@@ -136,7 +146,7 @@ Use these sparingly. Always filter `list_network_requests` with `resourceTypes` 
 
 ### 5. Write the report
 
-Fill in the template below and save it into the project folder.
+Fill in the template below and save the report.
 
 ## Report
 
@@ -191,29 +201,24 @@ The CSS fixes the look: Helvetica, warm neutrals, certainty chips and hairline r
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{site} – Tech Stack Audit · {9 Oct 2026}</title>
 <style>
-:root{--ground:#f4efec;--page:#fbfaf9;--ink:#251f21;--ink-2:#585254;--hairline:#eae9ea;
---font:"Helvetica Neue",Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgb(37 31 33/6%),0 6px 18px rgb(37 31 33/5%)}
-*{box-sizing:border-box}html,body{margin:0;background:var(--ground)}
-body{color:var(--ink);font-family:var(--font);font-size:14px;line-height:24px;-webkit-font-smoothing:antialiased;padding:24px 16px}
-.card{max-width:1040px;margin:0 auto;padding:40px 24px 48px;background:var(--page);border-radius:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:48px}
-h1{margin:0;font-weight:400;font-size:30px;line-height:1.1;letter-spacing:-.025em}
-h2{margin:0;font-weight:400;font-size:21px;line-height:1.1;letter-spacing:-.02em}
+:root{--page:#fbfaf9;--ink:#251f21;--ink-2:#585254;--hairline:#eae9ea}
+*{box-sizing:border-box}
+body{margin:0;padding:24px 16px;background:#f4efec;color:var(--ink);font:14px/24px "Helvetica Neue",Helvetica,Arial,sans-serif}
+.card{max-width:1040px;margin:0 auto;padding:40px 24px 48px;background:var(--page);display:flex;flex-direction:column;gap:48px}
+h1,h2{margin:0;font-weight:400;line-height:1.1}h1{font-size:30px}h2{font-size:21px}
 h3{font-size:14px;line-height:22px;font-weight:600;margin:0 0 4px;padding-bottom:4px;border-bottom:1px solid var(--hairline)}
-.group{display:flex;flex-direction:column;gap:20px;min-width:0}
-.findings{margin:0;padding:0 0 0 20px;display:flex;flex-direction:column;gap:6px}
-.dwrap{overflow-x:auto}.diagram{width:100%;min-width:760px;height:auto;display:block;font-family:var(--font)}
+.group{display:flex;flex-direction:column;gap:20px;min-width:0}.findings{margin:0;padding-left:20px}
+.dwrap{overflow-x:auto}.diagram{width:100%;min-width:760px;height:auto;display:block}
 .diagram .bt{font-size:12.5px;font-weight:600;fill:var(--ink)}.diagram .bs{font-size:10px;fill:var(--ink-2)}
-.diagram .lay{font-size:10.5px;letter-spacing:.06em;font-weight:600;fill:var(--ink-2);paint-order:stroke;stroke:var(--page);stroke-width:6px;stroke-linejoin:round}
+.diagram .lay{font-size:10.5px;letter-spacing:.06em;font-weight:600;fill:var(--ink-2);paint-order:stroke;stroke:var(--page);stroke-width:6px}
 .diagram .ar{fill:none;stroke:var(--ink-2);stroke-width:1.2}.diagram .ah,.diagram .dot{fill:var(--ink-2)}
 .cat,.dd{margin:0 0 18px}.dd h3{display:flex;align-items:center;gap:10px}
-.tool{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--hairline);font-size:12.5px;line-height:19px}
-.tool strong{font-weight:600}.line{color:var(--ink-2)}
+.tool,.spec>div{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--hairline);font-size:12.5px;line-height:19px}
+.spec{margin:0}.spec>div{grid-template-columns:170px 1fr}.spec dd{margin:0;overflow-wrap:anywhere}.spec+.spec{margin-top:20px}.line,.spec dt{color:var(--ink-2)}
 .chip{display:inline-block;text-align:center;font-size:11px;font-weight:600;line-height:20px;border-radius:10px;padding:0 6px;min-width:54px}
 .chip.high{background:#dff3e4;color:#14532d}.chip.medium{background:#fdf0cf;color:#6b4e00}.chip.low{background:#e9e9ec;color:#444}
-.spec{margin:0;font-size:12.5px;line-height:19px}.spec>div{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:7px 0;border-bottom:1px solid var(--hairline)}
-.spec dt{color:var(--ink-2)}.spec dd{margin:0;overflow-wrap:anywhere}.spec+.spec{margin-top:20px}
-@media (max-width:600px){.spec>div{grid-template-columns:1fr;gap:2px}.tool{grid-template-columns:56px 1fr}.card{padding:28px 16px;border-radius:16px}body{padding:12px 8px}}
-@media print{html,body{background:#fff;padding:0}.card{box-shadow:none;max-width:none}.dwrap{overflow:visible}.diagram{min-width:0}}
+@media (max-width:600px){.spec>div{grid-template-columns:1fr;gap:2px}body{padding:12px 8px}.card{padding:28px 16px}}
+@media print{body{background:#fff;padding:0}.card{max-width:none}.dwrap{overflow:visible}.diagram{min-width:0}}
 </style></head>
 <body><main class="card">
 <header><h1>{site} – Tech Stack Audit · {9 Oct 2026}</h1></header>
@@ -249,11 +254,10 @@ h3{font-size:14px;line-height:22px;font-weight:600;margin:0 0 4px;padding-bottom
 ### Diagram
 
 Every tool in Tools by category gets a box, plus one box for the data layer object. The
-diagram shows the data flow top to bottom, so all arrows point down. Draw it on this
-grid so the result is the same every time.
+diagram shows the data flow top to bottom, so all arrows point down.
 
-**Layers.** Use these in this order and skip empty ones. Number the ones you keep
-from 1, with labels in capitals ("1 SITE & PLATFORM"):
+**Layers.** Stack these as horizontal bands in this order and skip empty ones. Number
+the ones you keep from 1, with a `class="lay"` label in capitals ("1 SITE & PLATFORM"):
 
 | Layer | Holds | Fill / stroke |
 |---|---|---|
@@ -267,25 +271,24 @@ from 1, with labels in capitals ("1 SITE & PLATFORM"):
 | Adtech | pixels, conversion tags, ad serving | `#fff0db` / `#9a6419` |
 | Other | chat, widgets, everything else | `#f1efee` / `#7a7476` |
 
-**Geometry.** All values are in viewBox units, 992 wide.
+**Boxes.** Give boxes in a layer equal size and spacing, wrapping to a new row when
+a layer is full. Each box holds the name (`class="bt"`) and one detail line, such as an
+account ID, container or endpoint (`class="bs"`). Use a solid stroke for high
+certainty, `stroke-dasharray="4 3"` for medium and `"1.5 2.5"` for low. Draw the data
+layer and tag manager boxes with a heavier stroke as hubs.
 
-- **Boxes:** 184 × 52, `rx="8"`. Up to five per row, at x = 24, 220, 416, 612 and 808. A layer with more than five boxes wraps to a second row 62 below.
-- **Layer label:** `<text class="lay">` at x = 24, baseline y = layer top + 12. The first row's boxes start at layer top + 26.
-- **Spacing:** the next layer's top = the previous layer's last box bottom + 30. The first layer's top is 0. `{H}` = the last box bottom + 4.
-- **Box text:** the name is centered at y = box top + 23 (`class="bt"`, at most 22 characters; shorten if needed). The detail line, an account ID, container or endpoint, is centered at box top + 38 (`class="bs"`, at most 30 characters).
-- **Certainty:** solid stroke for high, `stroke-dasharray="4 3"` for medium, `"1.5 2.5"` for low. Use `stroke-width="1.8"` for the two or three hub boxes (data layer, tag manager); otherwise 1.
-
-**Arrows.** Use `class="ar"` with `marker-end="url(#ah)"`.
-
-- **Tag-manager rail:** one path from the tag manager box's left edge to x = 8, then down. One branch per destination layer it dispatches (`H` from x = 8 to the first box's left edge − 3), with a `<circle class="dot" r="2.4">` at x = 8. Don't draw one arrow per vendor.
-- **Individual arrows:** draw these only for evidenced relationships, such as platform → data layer, data layer → tag manager, CMP → Consent Mode, and tag manager → server-side. Same column: a straight drop from the box bottom to the target top − 2. Different column: `M x,bottom V lane H x2 V top-2`, where `lane` = target layer top − 15. Order boxes within a layer so that connected boxes share a column.
+**Arrows.** Use `class="ar"` with `marker-end="url(#ah)"`. Draw them only for
+evidenced relationships, such as platform → data layer, data layer → tag manager,
+CMP → Consent Mode, and tag manager → server-side. Show the tag manager's dispatch to
+vendor layers as one rail down the left margin, with a branch per layer, not one arrow
+per vendor. Place connected boxes in the same column where you can.
 
 **Draw order:** arrows first, then layer labels (their halo masks lines passing behind),
-then boxes.
+then boxes. Set `{H}` to fit the content.
 
 ### Check before handing over
 
-Open the file with `new_page` on its `file://` path and take a full-page screenshot.
+Load the report in the browser and take a full-page screenshot.
 Check that:
 
 - all five sections are present, in order;
