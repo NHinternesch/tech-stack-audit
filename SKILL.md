@@ -96,8 +96,8 @@ a later page too. Every page uses this one context.
 ### 3. Page types
 
 Always audit several page types, because commerce, content and conversion tags
-concentrate away from the homepage. From the homepage links, pick at least four
-distinct types the site has (the homepage counts as one), and at most seven:
+concentrate away from the homepage. From the homepage links, pick at least three
+distinct types the site has (the homepage counts as one), and at most six:
 
 | Site model | Page types |
 |---|---|
