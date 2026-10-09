@@ -1,13 +1,7 @@
 # Tech Stack Audit
 
-`tech-stack-audit` is an LLM skill for technical front-end audits. It leverages browser technologies through the Chrome Dev Tools MCP server to execute tech stack audits and inspect, review, and interpret website and martech tools. It creates a well-formatted summary and tech stack diagram, which are returned to various output channels.
+`tech-stack-audit` is an LLM skill for technical front-end audits. It controls a browser via Chrome DevTools MCP server to inspect a website's martech stack across several page types. The result is a single self-contained HTML report: Architecture diagram, top-line findings, tools by category, tool or category deep dive, and sources.
 
-## Benefits
+## Usage
 
-The skill **reduces time to deliverable** and **increases completeness** when executing front end tech stack audits in the web browser. 
-
-## Instructions
-1. Optional: Refine SKILL.md for specific use case
-2. Execute via direct command or trigger phrases. Provide input like the URL to audit and optional deep dive tool/category.
-
-The audit summary will be returned to the working directory as a .docx file. It can also be exported to other output channels, such as Slack, JIRA, Confluence.
+Run `/tech-stack-audit <url> [tool or category]`, or prompt to audit a site's tech stack. The report is written to the working directory.
