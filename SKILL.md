@@ -201,24 +201,29 @@ The CSS fixes the look: Helvetica, warm neutrals, certainty chips and hairline r
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{site} – Tech Stack Audit · {9 Oct 2026}</title>
 <style>
-:root{--page:#fbfaf9;--ink:#251f21;--ink-2:#585254;--hairline:#eae9ea}
-*{box-sizing:border-box}
-body{margin:0;padding:24px 16px;background:#f4efec;color:var(--ink);font:14px/24px "Helvetica Neue",Helvetica,Arial,sans-serif}
-.card{max-width:1040px;margin:0 auto;padding:40px 24px 48px;background:var(--page);display:flex;flex-direction:column;gap:48px}
-h1,h2{margin:0;font-weight:400;line-height:1.1}h1{font-size:30px}h2{font-size:21px}
+:root{--ground:#f4efec;--page:#fbfaf9;--ink:#251f21;--ink-2:#585254;--hairline:#eae9ea;
+--font:"Helvetica Neue",Helvetica,Arial,sans-serif;--shadow:0 1px 2px rgb(37 31 33/6%),0 6px 18px rgb(37 31 33/5%)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--ground)}
+body{color:var(--ink);font-family:var(--font);font-size:14px;line-height:24px;-webkit-font-smoothing:antialiased;padding:24px 16px}
+.card{max-width:1040px;margin:0 auto;padding:40px 24px 48px;background:var(--page);border-radius:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:48px}
+h1{margin:0;font-weight:400;font-size:30px;line-height:1.1;letter-spacing:-.025em}
+h2{margin:0;font-weight:400;font-size:21px;line-height:1.1;letter-spacing:-.02em}
 h3{font-size:14px;line-height:22px;font-weight:600;margin:0 0 4px;padding-bottom:4px;border-bottom:1px solid var(--hairline)}
-.group{display:flex;flex-direction:column;gap:20px;min-width:0}.findings{margin:0;padding-left:20px}
-.dwrap{overflow-x:auto}.diagram{width:100%;min-width:760px;height:auto;display:block}
+.group{display:flex;flex-direction:column;gap:20px;min-width:0}
+.findings{margin:0;padding:0 0 0 20px;display:flex;flex-direction:column;gap:6px}
+.dwrap{overflow-x:auto}.diagram{width:100%;min-width:760px;height:auto;display:block;font-family:var(--font)}
 .diagram .bt{font-size:12.5px;font-weight:600;fill:var(--ink)}.diagram .bs{font-size:10px;fill:var(--ink-2)}
-.diagram .lay{font-size:10.5px;letter-spacing:.06em;font-weight:600;fill:var(--ink-2);paint-order:stroke;stroke:var(--page);stroke-width:6px}
+.diagram .lay{font-size:10.5px;letter-spacing:.06em;font-weight:600;fill:var(--ink-2);paint-order:stroke;stroke:var(--page);stroke-width:6px;stroke-linejoin:round}
 .diagram .ar{fill:none;stroke:var(--ink-2);stroke-width:1.2}.diagram .ah,.diagram .dot{fill:var(--ink-2)}
 .cat,.dd{margin:0 0 18px}.dd h3{display:flex;align-items:center;gap:10px}
-.tool,.spec>div{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--hairline);font-size:12.5px;line-height:19px}
-.spec{margin:0}.spec>div{grid-template-columns:170px 1fr}.spec dd{margin:0;overflow-wrap:anywhere}.spec+.spec{margin-top:20px}.line,.spec dt{color:var(--ink-2)}
+.tool{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--hairline);font-size:12.5px;line-height:19px}
+.tool strong{font-weight:600}.line{color:var(--ink-2)}
 .chip{display:inline-block;text-align:center;font-size:11px;font-weight:600;line-height:20px;border-radius:10px;padding:0 6px;min-width:54px}
 .chip.high{background:#dff3e4;color:#14532d}.chip.medium{background:#fdf0cf;color:#6b4e00}.chip.low{background:#e9e9ec;color:#444}
-@media (max-width:600px){.spec>div{grid-template-columns:1fr;gap:2px}body{padding:12px 8px}.card{padding:28px 16px}}
-@media print{body{background:#fff;padding:0}.card{max-width:none}.dwrap{overflow:visible}.diagram{min-width:0}}
+.spec{margin:0;font-size:12.5px;line-height:19px}.spec>div{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:7px 0;border-bottom:1px solid var(--hairline)}
+.spec dt{color:var(--ink-2)}.spec dd{margin:0;overflow-wrap:anywhere}.spec+.spec{margin-top:20px}
+@media (max-width:600px){.spec>div{grid-template-columns:1fr;gap:2px}.tool{grid-template-columns:56px 1fr}.card{padding:28px 16px;border-radius:16px}body{padding:12px 8px}}
+@media print{html,body{background:#fff;padding:0}.card{box-shadow:none;max-width:none}.dwrap{overflow:visible}.diagram{min-width:0}}
 </style></head>
 <body><main class="card">
 <header><h1>{site} – Tech Stack Audit · {9 Oct 2026}</h1></header>
